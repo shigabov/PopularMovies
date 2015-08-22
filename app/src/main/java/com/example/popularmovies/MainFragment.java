@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,9 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -35,6 +32,7 @@ public class MainFragment extends Fragment {
     public ImageAdapter imageAdapter;
     public ArrayList<MovieInfo> movies = new ArrayList<>();
     public String MOVIE_KEY = "movies";
+    public String MOVIE_SORT = "sort";
 
     private final String LOG_TAG = "PopularMovies";
 
@@ -56,6 +54,7 @@ public class MainFragment extends Fragment {
                     movies.add(movie.getMovie());
                 }
             }
+            sort_by = savedInstanceState.getString(MOVIE_SORT);
         }
     }
 
@@ -78,6 +77,7 @@ public class MainFragment extends Fragment {
         if (requestCode == resCode) {
             if (resultCode == Activity.RESULT_OK) {
                 sort_by = data.getStringExtra("sortBy");
+                updateMovies();
 
             }
         }
@@ -131,7 +131,7 @@ public class MainFragment extends Fragment {
         protected ArrayList<MovieInfo> doInBackground(String... params) {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
-            String api_key = null;
+            String api_key = "52255459a70d4a3982e8fac6baf6fa15";
             String jsonString = null;
             try {
 
@@ -256,6 +256,7 @@ public class MainFragment extends Fragment {
             parselMovie.add(new ParcelMovie(movie));
         }
         savedInstanceState.putParcelableArrayList(MOVIE_KEY, parselMovie);
-        Log.v(LOG_TAG,"onSaveInstanceState");
+        savedInstanceState.putString(MOVIE_SORT,sort_by);
+        //Log.v(LOG_TAG,"onSaveInstanceState");
     }
 }
