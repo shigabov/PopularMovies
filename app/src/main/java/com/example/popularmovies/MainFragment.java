@@ -131,7 +131,7 @@ public class MainFragment extends Fragment {
         protected ArrayList<MovieInfo> doInBackground(String... params) {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
-            String api_key = "52255459a70d4a3982e8fac6baf6fa15";
+            String api_key = null;
             String jsonString = null;
             try {
 
