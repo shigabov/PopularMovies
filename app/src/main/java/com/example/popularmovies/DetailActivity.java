@@ -55,7 +55,11 @@ public class DetailActivity extends AppCompatActivity {
                 ((TextView) rootView.findViewById(R.id.textView_rating)).setText(intent.getStringExtra("rating"));
                 ((TextView) rootView.findViewById(R.id.textView_title)).setText(intent.getStringExtra("title"));
                 ((TextView) rootView.findViewById(R.id.textView_releaseDate)).setText(intent.getStringExtra("releaseDate"));
-                Picasso.with(getActivity()).load(intent.getStringExtra("bigPoster")).into((ImageView) rootView.findViewById(R.id.imageView_big_poster));
+                Picasso.with(getActivity())
+                        .load(intent.getStringExtra("bigPoster"))
+                        .placeholder(R.drawable.placeholder)
+                        .error(R.drawable.error)
+                        .into((ImageView) rootView.findViewById(R.id.imageView_big_poster));
 
 
                 //(TextView) rootView.findViewById(R.id.textView_overview).setText();

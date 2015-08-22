@@ -1,11 +1,11 @@
 package com.example.popularmovies;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,11 +15,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.GridView;
-import android.widget.ImageView;
-
-import com.squareup.picasso.Picasso;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -35,56 +33,13 @@ import java.util.ArrayList;
 public class MainFragment extends Fragment {
 
     public ImageAdapter imageAdapter;
+    public ArrayList<MovieInfo> movies = new ArrayList<>();
+    public String MOVIE_KEY = "movies";
 
     private final String LOG_TAG = "PopularMovies";
 
     public String sort_by = "popularity.desc";
-
-    public class ImageAdapter extends BaseAdapter {
-        private Context mContext;
-        private ArrayList<MovieInfo> movies;
-
-        public ImageAdapter(Context c) {
-            mContext = c;
-            movies = new ArrayList<MovieInfo>();
-        }
-
-        public int getCount() {
-            return movies.size();
-        }
-        public void setItems(ArrayList<MovieInfo> list){
-            movies = list;
-        }
-
-        public Object getItem(int position) {
-            return null;
-        }
-
-        public MovieInfo getMovie(int position) {
-            return movies.get(position);
-        }
-
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        // create a new ImageView for each item referenced by the Adapter
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ImageView imageView;
-            if (convertView == null) {
-                // if it's not recycled, initialize some attributes
-                imageView = new ImageView(mContext);
-            } else {
-                imageView = (ImageView) convertView;
-            }
-
-            //Log.v(LOG_TAG, movies.get(position).posterPath);
-            Picasso.with(mContext).load(movies.get(position).posterPath).into(imageView);
-            return imageView;
-        }
-
-        // references to our images
-    }
+    public final int  resCode = 0;
 
     public MainFragment() {
         // Required empty public constructor
@@ -94,9 +49,16 @@ public class MainFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
+        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIE_KEY)) {
+            ArrayList<ParcelMovie> parcelMovie = (ArrayList<ParcelMovie>) savedInstanceState.get(MOVIE_KEY);
+            if (parcelMovie != null) {
+                for (ParcelMovie movie : parcelMovie) {
+                    movies.add(movie.getMovie());
+                }
+            }
+        }
     }
-    final int  resCode = 0;
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
@@ -115,9 +77,6 @@ public class MainFragment extends Fragment {
                                     Intent data) {
         if (requestCode == resCode) {
             if (resultCode == Activity.RESULT_OK) {
-                // A contact was picked.  Here we will just display it
-                // to the user.
-                //Log.v("PopularMovies","onActivityResult="+data.getStringExtra("sortBy"));
                 sort_by = data.getStringExtra("sortBy");
 
             }
@@ -131,7 +90,8 @@ public class MainFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        updateMovies();
+        if (movies.size()==0) updateMovies();
+        else imageAdapter.setItems(movies);
     }
 
     private void updateMovies(){
@@ -161,27 +121,6 @@ public class MainFragment extends Fragment {
         });
 
         return rootView;
-    }
-
-    class MovieInfo {
-
-        public String id;
-        public String posterPath;
-        public String bigPosterPath;
-        public String originalTitle;
-        public String overview;
-        public String releaseDate;
-        public String voteAverage;
-
-        MovieInfo(String id, String posterPath, String bigPosterPath, String originalTitle, String overview, String releaseDate, String voteAverage) {
-            this.id = id;
-            this.posterPath = posterPath;
-            this.bigPosterPath = bigPosterPath;
-            this.originalTitle = originalTitle;
-            this.overview = overview;
-            this.releaseDate = releaseDate;
-            this.voteAverage = voteAverage;
-        }
     }
 
     public class FetchMovies extends AsyncTask<String, Void, ArrayList<MovieInfo>> {
@@ -248,6 +187,7 @@ public class MainFragment extends Fragment {
                 // to parse it.
                 //return null;
                 Log.v(LOG_TAG,e.getMessage());
+                return null;
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -282,7 +222,7 @@ public class MainFragment extends Fragment {
             final String IMAGE_BASE_PATH =  "http://image.tmdb.org/t/p/";
             final String IMAGE_SIZE = "w185";
             final String BIG_IMAGE_SIZE = "w342";
-            ArrayList<MovieInfo> res = new ArrayList<MovieInfo>();
+            ArrayList<MovieInfo> res = new ArrayList<>();
 
 
             JSONObject json = new JSONObject(jsonString);
@@ -299,12 +239,23 @@ public class MainFragment extends Fragment {
         @Override
         protected void onPostExecute(ArrayList<MovieInfo> result){
             if (result!=null){
-                //movies = result;
-                imageAdapter.setItems(result);
+                movies = result;
+                imageAdapter.setItems(movies);
                 imageAdapter.notifyDataSetChanged();
             }
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
 
+        super.onSaveInstanceState(savedInstanceState);
+        // Save the user's current game state
+        ArrayList<ParcelMovie> parselMovie = new ArrayList<>();
+        for (MovieInfo movie : movies){
+            parselMovie.add(new ParcelMovie(movie));
+        }
+        savedInstanceState.putParcelableArrayList(MOVIE_KEY, parselMovie);
+        Log.v(LOG_TAG,"onSaveInstanceState");
+    }
 }
