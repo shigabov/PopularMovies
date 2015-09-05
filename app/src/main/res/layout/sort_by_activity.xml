@@ -1,29 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/choose_sort"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:text="@string/choose_sort" />
+
     <RadioGroup
+        android:id="@+id/radioGroup_sort"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:id="@+id/radioGroup_sort">
+        android:layout_height="wrap_content">
+
         <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/most_popular"
             android:id="@+id/radioButton_pop"
-            android:layout_gravity="center_horizontal"
-            android:onClick="onRadioButtonClicked"/>
-        <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/highest_rated"
-            android:id="@+id/radioButton_rating"
             android:layout_gravity="center_horizontal"
-            android:onClick="onRadioButtonClicked"/>
+            android:onClick="onRadioButtonClicked"
+            android:text="@string/most_popular" />
+
+        <RadioButton
+            android:id="@+id/radioButton_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:onClick="onRadioButtonClicked"
+            android:text="@string/highest_rated" />
+
+        <RadioButton
+            android:id="@+id/radioButton_favorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:onClick="onRadioButtonClicked"
+            android:text="@string/favorite" />
     </RadioGroup>
 
 </LinearLayout>

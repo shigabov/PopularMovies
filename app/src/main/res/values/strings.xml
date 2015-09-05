@@ -11,6 +11,8 @@
     <string name="rating">rating:</string>
     <string name="highest_rated">highest rated</string>
     <string name="most_popular">most popular</string>
+    <string name="favorite">favorite</string>
+
     <string name="choose_sort">choose sort criteria:</string>
 
 

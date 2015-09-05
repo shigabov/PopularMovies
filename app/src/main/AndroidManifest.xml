@@ -19,7 +19,8 @@
         <activity
             android:name=".DetailActivity"
             android:label="@string/title_detail_activity"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            >
         </activity>
         <activity android:name=".SortByActivity">
 

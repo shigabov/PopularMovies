@@ -1,13 +1,19 @@
 package com.example.popularmovies;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 /**
  * Created by Артем on 21.08.2015.
  * Class that stores information about movie and supporting class for using Bundle
  */
 class MovieInfo  {
+    private final String LOG_TAG = "PopularMovies";
 
     public String id;
     public String posterPath;
@@ -15,9 +21,13 @@ class MovieInfo  {
     public String originalTitle;
     public String overview;
     public String releaseDate;
-    public String voteAverage;
+    public double voteAverage;
+    public boolean isFavorite;
 
-    MovieInfo(String id, String posterPath, String bigPosterPath, String originalTitle, String overview, String releaseDate, String voteAverage) {
+    MovieInfo() {
+    }
+
+    MovieInfo(String id, String posterPath, String bigPosterPath, String originalTitle, String overview, String releaseDate, double voteAverage) {
         this.id = id;
         this.posterPath = posterPath;
         this.bigPosterPath = bigPosterPath;
@@ -25,6 +35,57 @@ class MovieInfo  {
         this.overview = overview;
         this.releaseDate = releaseDate;
         this.voteAverage = voteAverage;
+    }
+    public boolean isFavorite (Context c){
+        MovieDBOpenHelper movieDBOpenHelper = new MovieDBOpenHelper(c);
+
+        SQLiteDatabase movieDB = movieDBOpenHelper.getReadableDatabase();
+        Cursor cur;
+
+        try {
+            cur = movieDB.rawQuery("select 1 from movies where mv_id = "+id,null);
+            isFavorite= (cur.getCount()>0);
+            cur.close();
+        }
+        catch (SQLException e){
+            Log.v(LOG_TAG, e.getMessage());
+        }
+        finally {
+            movieDBOpenHelper.close();
+        }
+        return isFavorite;
+    }
+    public void changeFavorite(Context c){
+        MovieDBOpenHelper movieDBOpenHelper = new MovieDBOpenHelper(c);
+
+        SQLiteDatabase movieDB = movieDBOpenHelper.getWritableDatabase();
+        movieDB.beginTransaction();
+        try {
+            if (!isFavorite) {
+                movieDB.execSQL("insert into movies values (" + id + ",'"
+                        + originalTitle + "',"
+                        + releaseDate + ",'"
+                        + overview.replace("'","") + "',"
+                        + voteAverage + ",'"
+                        + posterPath + "')");
+                isFavorite = true;
+            }
+            else {
+                movieDB.execSQL("delete from movies where mv_id = "+id);
+                isFavorite=false;
+            }
+
+            movieDB.setTransactionSuccessful();
+
+
+        }
+        catch (SQLException e){
+            Log.v(LOG_TAG, e.getMessage());
+        }
+        finally {
+            movieDB.endTransaction();
+            movieDBOpenHelper.close();
+        }
     }
 }
 class ParcelMovie implements Parcelable {
@@ -35,7 +96,7 @@ class ParcelMovie implements Parcelable {
     public String originalTitle;
     public String overview;
     public String releaseDate;
-    public String voteAverage;
+    public double voteAverage;
 
     public ParcelMovie (MovieInfo movieInfo) {
         this.id = movieInfo.id;
@@ -54,7 +115,7 @@ class ParcelMovie implements Parcelable {
         originalTitle = in.readString();
         overview = in.readString();
         releaseDate = in.readString();
-        voteAverage = in.readString();
+        voteAverage = in.readDouble();
     }
 
     public int describeContents() {
@@ -68,7 +129,7 @@ class ParcelMovie implements Parcelable {
         out.writeString(originalTitle);
         out.writeString(overview);
         out.writeString(releaseDate);
-        out.writeString(voteAverage);
+        out.writeDouble(voteAverage);
     }
 
     public static final Parcelable.Creator<ParcelMovie> CREATOR

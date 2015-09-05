@@ -16,6 +16,7 @@ public class SortByActivity extends AppCompatActivity {
         setContentView(R.layout.sort_by_activity);
         RadioButton id1 = (RadioButton) findViewById(R.id.radioButton_pop);
         RadioButton id2 = (RadioButton) findViewById(R.id.radioButton_rating);
+        RadioButton id3 = (RadioButton) findViewById(R.id.radioButton_favorite);
 
         Intent intent = getIntent();
         if (intent != null){
@@ -25,6 +26,9 @@ public class SortByActivity extends AppCompatActivity {
                     break;
                 case "vote_average.desc":
                     id2.toggle();
+                    break;
+                case "favorite":
+                    id3.toggle();
                     break;
             }
         }
@@ -42,6 +46,9 @@ public class SortByActivity extends AppCompatActivity {
                 break;
             case R.id.radioButton_rating:
                 if (checked) intent.putExtra("sortBy","vote_average.desc");
+                break;
+            case R.id.radioButton_favorite:
+                if (checked) intent.putExtra("sortBy","favorite");
                 break;
         }
         setResult (RESULT_OK, intent);
