@@ -62,6 +62,7 @@
                 android:layout_below="@id/ratingBar"
                 android:layout_toRightOf="@id/imageView_big_poster"
                 android:onClick="onFavoriteClicked"
+
                 android:src="@drawable/star" />
 
 
