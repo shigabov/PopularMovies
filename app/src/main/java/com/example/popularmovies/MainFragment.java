@@ -17,12 +17,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import java.net.HttpURLConnection;
+
 import org.json.JSONException;
+
 import java.io.BufferedReader;
 import java.net.URL;
 import java.io.InputStream;
@@ -40,20 +44,23 @@ public class MainFragment extends Fragment {
     private final String LOG_TAG = "PopularMovies";
 
     public String sort_by = "popularity.desc";
-    public final int  resCode = 0;
+    public final int resCode = 0;
 
     public MainFragment() {
         // Required empty public constructor
     }
 
+    public interface Callback {
+        public void onItemSelected(MovieInfo movie);
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         if (savedInstanceState != null && savedInstanceState.containsKey(MOVIE_KEY)) {
-            ArrayList<ParcelMovie> parcelMovie = (ArrayList<ParcelMovie>) savedInstanceState.get(MOVIE_KEY);
+            ArrayList<MovieInfo> parcelMovie = (ArrayList<MovieInfo>) savedInstanceState.get(MOVIE_KEY);
             if (parcelMovie != null) {
-                for (ParcelMovie movie : parcelMovie) {
+                for (MovieInfo movie : parcelMovie) {
                     movies.add(movie.getMovie());
                 }
             }
@@ -63,12 +70,12 @@ public class MainFragment extends Fragment {
 
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem menuItem){
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
         int id = menuItem.getItemId();
 
-        if (id==R.id.action_sort){
-            Intent intent = new Intent(getActivity(),SortByActivity.class);
-            intent.putExtra("sortBy",sort_by);
+        if (id == R.id.action_sort) {
+            Intent intent = new Intent(getActivity(), SortByActivity.class);
+            intent.putExtra("sortBy", sort_by);
             startActivityForResult(intent, resCode);
             return true;
         }
@@ -76,7 +83,7 @@ public class MainFragment extends Fragment {
     }
 
     public void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
+                                 Intent data) {
         if (requestCode == resCode) {
             if (resultCode == Activity.RESULT_OK) {
                 sort_by = data.getStringExtra("sortBy");
@@ -85,6 +92,7 @@ public class MainFragment extends Fragment {
             }
         }
     }
+
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
         inflater.inflate(R.menu.main_fragment_menu, menu);
@@ -93,11 +101,11 @@ public class MainFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        if (movies.size()==0) updateMovies();
+        if (movies.size() == 0) updateMovies();
         else imageAdapter.setItems(movies);
     }
 
-    private void updateMovies(){
+    private void updateMovies() {
         FetchMovies fetchMovies = new FetchMovies();
         fetchMovies.execute(sort_by);
     }
@@ -106,7 +114,7 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView =  inflater.inflate(R.layout.main_fragment, container, false);
+        View rootView = inflater.inflate(R.layout.main_fragment, container, false);
 
         GridView gridview = (GridView) rootView.findViewById(R.id.gridview);
 
@@ -118,8 +126,8 @@ public class MainFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 MovieInfo movie = imageAdapter.getMovie(position);
-                Intent intent = new Intent(getActivity(),DetailActivity.class).putExtra("id", movie.id).putExtra("title", movie.originalTitle).putExtra("releaseDate",movie.releaseDate).putExtra("rating",movie.voteAverage).putExtra("poster",movie.posterPath).putExtra("bigPoster",movie.bigPosterPath).putExtra("overview",movie.overview);
-                startActivity(intent);
+
+                ((Callback) getActivity()).onItemSelected(movie);
             }
         });
 
@@ -127,8 +135,19 @@ public class MainFragment extends Fragment {
     }
 
     public class FetchMovies extends AsyncTask<String, Void, ArrayList<MovieInfo>> {
-        private final String LOG_TAG = "PopularMovies";
-        private final int MAX_COUNT = 20;
+        final String LOG_TAG = "PopularMovies";
+        final int MAX_COUNT = 20;
+        final String IMAGE_SIZE = "w342";
+        final String BIG_IMAGE_SIZE = "w342";
+        final String IMAGE_BASE_PATH = "http://image.tmdb.org/t/p/";
+        final String MV_LIST = "results";
+        final String MV_ID = "id";
+        final String MV_POSTER = "poster_path";
+        final String MV_OVERVIEW = "overview";
+        final String MV_RELEASE_DATE = "release_date";
+        final String MV_VOTE_AVERAGE = "vote_average";
+        final String MV_ORIGINAL_TITLE = "original_title";
+
 
         @Override
         protected ArrayList<MovieInfo> doInBackground(String... params) {
@@ -137,7 +156,7 @@ public class MainFragment extends Fragment {
             String api_key = "52255459a70d4a3982e8fac6baf6fa15";
             String jsonString = null;
 
-            Log.v(LOG_TAG,"params[0]="+params[0]);
+            Log.v(LOG_TAG, "params[0]=" + params[0]);
             if (!params[0].equals("favorite")) {
                 try {
                     final String MOVIEDB_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
@@ -205,85 +224,72 @@ public class MainFragment extends Fragment {
                 } catch (JSONException e) {
                     Log.v(LOG_TAG, e.getMessage());
                 }
-            }
-            else {
+            } else {
                 //Log.v(LOG_TAG,"favorite");
                 MovieDBOpenHelper movieDBOpenHelper = new MovieDBOpenHelper(getActivity());
                 try {
                     SQLiteDatabase movieDB = movieDBOpenHelper.getReadableDatabase();
-                   return parse(movieDB.rawQuery("select * from movies", null));
-                }
-                catch (SQLException e){
-                    Log.v(LOG_TAG,e.getMessage());
-                }
-                finally {
+                    return parse(movieDB.rawQuery("select * from movies", null));
+                } catch (SQLException e) {
+                    Log.v(LOG_TAG, e.getMessage());
+                } finally {
                     movieDBOpenHelper.close();
                 }
             }
             return null;
         }
 
-        public ArrayList<MovieInfo> parse(Cursor c) throws SQLException
-        {
-            String IMAGE_SIZE = "w342";
-            String BIG_IMAGE_SIZE = "w342";
-            String IMAGE_BASE_PATH = "http://image.tmdb.org/t/p/";
+        public ArrayList<MovieInfo> parse(Cursor c) throws SQLException {
+
             ArrayList<MovieInfo> ret = new ArrayList<>();
-            Log.v(LOG_TAG, "cnt=" + c.getCount());
+            //Log.v(LOG_TAG, "cnt=" + c.getCount());
 
-                c.moveToFirst();
+            c.moveToFirst();
 
-                while (!c.isAfterLast()){
-                    ret.add(new MovieInfo(c.getString(0),
-                            IMAGE_BASE_PATH + IMAGE_SIZE + c.getString(5),
-                            IMAGE_BASE_PATH + BIG_IMAGE_SIZE + c.getString(5),
-                            c.getString(1),
-                            c.getString(3),
-                            c.getString(2),
-                            c.getDouble(4)));
-                    c.moveToNext();
-                }
+            //Log.v(LOG_TAG, "release_date=" + c.getString(2));
+
+            while (!c.isAfterLast()) {
+                ret.add(new MovieInfo(c.getString(0),
+                        IMAGE_BASE_PATH + IMAGE_SIZE + c.getString(5),
+                        IMAGE_BASE_PATH + BIG_IMAGE_SIZE + c.getString(5),
+                        c.getString(1),
+                        c.getString(3),
+                        c.getString(2),
+                        c.getDouble(4)));
+                c.moveToNext();
+            }
 
             c.close();
 
             return ret;
         }
-        public ArrayList<MovieInfo> parse(String jsonString) throws  JSONException
-        {
 
-            final String MV_LIST = "results";
-            final String MV_ID = "id";
-            final String MV_POSTER = "poster_path";
-            final String MV_OVERVIEW = "overview";
-            final String MV_RELEASE_DATE = "release_date";
-            final String MV_VOTE_AVERAGE = "vote_average";
-            final String MV_ORIGINAL_TITLE = "original_title";
-            final String IMAGE_BASE_PATH =  "http://image.tmdb.org/t/p/";
-            final String IMAGE_SIZE = "w342";
-            final String BIG_IMAGE_SIZE = "w342";
+        public ArrayList<MovieInfo> parse(String jsonString) throws JSONException {
+
+
             ArrayList<MovieInfo> res = new ArrayList<>();
 
 
             JSONObject json = new JSONObject(jsonString);
             JSONArray jsonarray = json.getJSONArray(MV_LIST);
 
-            for(int i = 0; i < jsonarray.length() && i < MAX_COUNT; i++) {
+            for (int i = 0; i < jsonarray.length() && i < MAX_COUNT; i++) {
                 JSONObject movie = jsonarray.getJSONObject(i);
                 res.add(new MovieInfo(movie.getString(MV_ID),
-                        IMAGE_BASE_PATH + IMAGE_SIZE+movie.getString(MV_POSTER),
-                        IMAGE_BASE_PATH + BIG_IMAGE_SIZE+movie.getString(MV_POSTER),
+                        IMAGE_BASE_PATH + IMAGE_SIZE + movie.getString(MV_POSTER),
+                        IMAGE_BASE_PATH + BIG_IMAGE_SIZE + movie.getString(MV_POSTER),
                         movie.getString(MV_ORIGINAL_TITLE),
                         movie.getString(MV_OVERVIEW),
                         movie.getString(MV_RELEASE_DATE),
                         movie.getDouble(MV_VOTE_AVERAGE)));
             }
-           // Log.v(LOG_TAG,"added items = " + res.size());
+            // Log.v(LOG_TAG,"added items = " + res.size());
             return res;
         }
 
         @Override
-        protected void onPostExecute(ArrayList<MovieInfo> result){
-            if (result!=null){
+        protected void onPostExecute(ArrayList<MovieInfo> result) {
+            if (result != null) {
                 movies = result;
                 imageAdapter.setItems(movies);
                 imageAdapter.notifyDataSetChanged();
@@ -296,12 +302,12 @@ public class MainFragment extends Fragment {
 
         super.onSaveInstanceState(savedInstanceState);
         // Save the user's current game state
-        ArrayList<ParcelMovie> parselMovie = new ArrayList<>();
-        for (MovieInfo movie : movies){
-            parselMovie.add(new ParcelMovie(movie));
+        ArrayList<MovieInfo> parselMovie = new ArrayList<>();
+        for (MovieInfo movie : movies) {
+            parselMovie.add(movie);
         }
         savedInstanceState.putParcelableArrayList(MOVIE_KEY, parselMovie);
-        savedInstanceState.putString(MOVIE_SORT,sort_by);
+        savedInstanceState.putString(MOVIE_SORT, sort_by);
         //Log.v(LOG_TAG,"onSaveInstanceState");
     }
 }

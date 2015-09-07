@@ -94,21 +94,16 @@ public class DetailFragment extends Fragment  {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView =  inflater.inflate(R.layout.detail_fragment, container, false);
 
-        ViewHolder viewHolder = new ViewHolder(rootView);
+        Bundle args = getArguments();
 
-        Intent intent = getActivity().getIntent();
+        if (args != null){
 
-        if (intent != null){
+            View rootView =  inflater.inflate(R.layout.detail_fragment, container, false);
 
-            movie.id = intent.getStringExtra("id");
-            movie.bigPosterPath = intent.getStringExtra("bigPoster");
-            movie.posterPath = intent.getStringExtra("poster");
-            movie.originalTitle = intent.getStringExtra("title");
-            movie.overview = intent.getStringExtra("overview");
-            movie.voteAverage = intent.getDoubleExtra("rating", 0);
-            movie.releaseDate = intent.getStringExtra("releaseDate");
+            ViewHolder viewHolder = new ViewHolder(rootView);
+
+            movie = args.getParcelable("MOVIE");
 
             viewHolder.overviewView.setText(movie.overview);
             viewHolder.ratingView.setRating((float) movie.voteAverage);
@@ -117,7 +112,6 @@ public class DetailFragment extends Fragment  {
 
             if (movie.isFavorite(getActivity())) viewHolder.favoriteBtn.setImageResource(R.drawable.star_2);
             else viewHolder.favoriteBtn.setImageResource(R.drawable.star);
-
 
             //adapterTrailer = new ArrayAdapter<>(getActivity(),R.layout.list_view_trailer,R.id.textView_trailer);
             trailerAdapter = new TrailerAdapter(getActivity());
@@ -136,9 +130,9 @@ public class DetailFragment extends Fragment  {
             //(TextView) rootView.findViewById(R.id.textView_overview).setText();
             //(TextView) rootView.findViewById(R.id.textView_rating).s
             updateMovie();
+            return rootView;
         }
-
-        return rootView;
+        else return null;
     }
 
     public void onTrailerClicked(View v) {
@@ -156,16 +150,21 @@ public class DetailFragment extends Fragment  {
         else Log.v(LOG_TAG,"Activity not found!");
     }
 
-    public void onFavoriteClicked(View v){
+    public void onFavoriteClicked(View v) {
 
         ViewHolder viewHolder = new ViewHolder(v);
 
-       movie.changeFavorite(getActivity());
+        MovieDBOpenHelper movieDBOpenHelper = new MovieDBOpenHelper(getActivity());
+        SQLiteDatabase movieDB = movieDBOpenHelper.getWritableDatabase();
+
+        movie.changeFavorite(movieDB);
+
+        movieDB.close();
+        movieDBOpenHelper.close();
 
         if (movie.isFavorite) {
             viewHolder.favoriteBtn.setImageResource(R.drawable.star_2);
-        }
-        else viewHolder.favoriteBtn.setImageResource(R.drawable.star);
+        } else viewHolder.favoriteBtn.setImageResource(R.drawable.star);
         v.refreshDrawableState();
 
     }
