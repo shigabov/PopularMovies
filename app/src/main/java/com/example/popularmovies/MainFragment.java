@@ -1,7 +1,6 @@
 package com.example.popularmovies;
 
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -19,29 +18,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 
 
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
 import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.net.HttpURLConnection;
 
 import org.json.JSONException;
 
-import java.io.BufferedReader;
-import java.net.URL;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 
 import retrofit.Call;
 import retrofit.Retrofit;
@@ -171,14 +161,8 @@ public class MainFragment extends Fragment {
         }
         @Override
         protected ArrayList<MovieInfo> doInBackground(String... params) {
-<<<<<<< HEAD
 
             String api_key = (String) getResources().getText(R.string.api_key);
-=======
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String api_key = "";
->>>>>>> 5c38a9a752badcadbd6464ae6a08e748dd9c9b9a
             String jsonString = null;
 
             if (!params[0].equals("favorite")) {
