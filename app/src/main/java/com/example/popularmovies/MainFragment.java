@@ -171,8 +171,14 @@ public class MainFragment extends Fragment {
         }
         @Override
         protected ArrayList<MovieInfo> doInBackground(String... params) {
+<<<<<<< HEAD
 
             String api_key = (String) getResources().getText(R.string.api_key);
+=======
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+            String api_key = "";
+>>>>>>> 5c38a9a752badcadbd6464ae6a08e748dd9c9b9a
             String jsonString = null;
 
             if (!params[0].equals("favorite")) {
