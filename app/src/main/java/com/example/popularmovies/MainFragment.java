@@ -1,6 +1,7 @@
 package com.example.popularmovies;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -8,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +21,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ProgressBar;
+
+
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
+import com.squareup.okhttp.ResponseBody;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,6 +41,10 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit.Call;
+import retrofit.Retrofit;
 
 public class MainFragment extends Fragment {
 
@@ -66,6 +78,7 @@ public class MainFragment extends Fragment {
             }
             sort_by = savedInstanceState.getString(MOVIE_SORT);
         }
+       
     }
 
 
@@ -115,6 +128,8 @@ public class MainFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
+        int mProgressStatus = 0;
+        Handler mHandler = new Handler();
 
         GridView gridview = (GridView) rootView.findViewById(R.id.gridview);
 
@@ -150,75 +165,35 @@ public class MainFragment extends Fragment {
 
 
         @Override
+        protected void onPreExecute(){
+            ProgressBar progressBar = (ProgressBar) getActivity().findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
+        }
+        @Override
         protected ArrayList<MovieInfo> doInBackground(String... params) {
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String api_key = "52255459a70d4a3982e8fac6baf6fa15";
+
+            String api_key = (String) getResources().getText(R.string.api_key);
             String jsonString = null;
 
-            Log.v(LOG_TAG, "params[0]=" + params[0]);
             if (!params[0].equals("favorite")) {
                 try {
-                    final String MOVIEDB_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
-                    final String SORT_BY = "sort_by";
-                    final String API_KEY = "api_key";
 
-                    Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
-                            .appendQueryParameter(SORT_BY, params[0])
-                            .appendQueryParameter(API_KEY, api_key)
+                    Retrofit retrofit = new Retrofit.Builder()
+                            .baseUrl("http://api.themoviedb.org")
                             .build();
+                    MoviesService moviesService = retrofit.create(MoviesService.class);
 
-                    URL url = new URL(builtUri.toString());
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setRequestMethod("GET");
-                    urlConnection.connect();
+                    Call<ResponseBody> moviesCall = moviesService.listMovies(params[0], api_key);
+                    retrofit.Response<ResponseBody> response = moviesCall.execute();
+                    jsonString = response.body().string();
+                    Log.v(LOG_TAG,jsonString);
 
-                    // Read the input stream into a String
-                    InputStream inputStream = urlConnection.getInputStream();
-                    StringBuffer buffer = new StringBuffer();
-                    if (inputStream == null) {
-                        // Nothing to do.
-                        return null;
-                        //Log.v(LOG_TAG,"inputStream is null");
+                    }
+                    catch (IOException e){
+                        Log.v(LOG_TAG,e.toString());
                     }
 
-                    reader = new BufferedReader(new InputStreamReader(inputStream));
 
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                        // But it does make debugging a *lot* easier if you print out the completed
-                        // buffer for debugging.
-                        buffer.append(line + "\n");
-                    }
-
-                    if (buffer.length() == 0) {
-                        // Stream was empty.  No point in parsing.
-                        return null;
-                        //Log.v(LOG_TAG,"Nothing");
-                    }
-
-                    jsonString = buffer.toString();
-
-                } catch (Exception e) {
-
-                    // If the code didn't successfully get the weather data, there's no point in attemping
-                    // to parse it.
-                    //return null;
-                    Log.v(LOG_TAG, e.getMessage());
-                    return null;
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect();
-                    }
-                    if (reader != null) {
-                        try {
-                            reader.close();
-                        } catch (final IOException e) {
-                            Log.v(LOG_TAG, e.getMessage());
-                        }
-                    }
-                }
                 try {
                     return parse(jsonString);
                 } catch (JSONException e) {
@@ -293,6 +268,9 @@ public class MainFragment extends Fragment {
                 movies = result;
                 imageAdapter.setItems(movies);
                 imageAdapter.notifyDataSetChanged();
+                ProgressBar progressBar = (ProgressBar) getActivity().findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.INVISIBLE);
+
             }
         }
     }

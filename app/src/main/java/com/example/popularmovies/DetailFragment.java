@@ -42,6 +42,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit.http.GET;
+import retrofit.http.Path;
+
 /**
  * Created by Артем on 23.08.2015.
  */
@@ -70,7 +73,8 @@ public class DetailFragment extends Fragment  {
         public final TextView releaseView;
         public final ListView trailersLV;
         public final ListView reviewsLV;
-        public final RatingBar ratingView;
+        public final RatingBar ratingBarView;
+        public final TextView ratingView;
 
         public ViewHolder(View v) {
             overviewView = (TextView) v.findViewById(R.id.textView_overview);
@@ -79,7 +83,9 @@ public class DetailFragment extends Fragment  {
             releaseView  = (TextView) v.findViewById(R.id.textView_releaseDate);
             trailersLV = (ListView) v.findViewById(R.id.listView_trailers);
             reviewsLV = (ListView) v.findViewById(R.id.listView_reviews);
-            ratingView = (RatingBar) v.findViewById(R.id.ratingBar);
+            ratingBarView = (RatingBar) v.findViewById(R.id.ratingBar);
+            ratingView = (TextView) v.findViewById(R.id.textView_rating);
+
         }
     }
 
@@ -106,9 +112,10 @@ public class DetailFragment extends Fragment  {
             movie = args.getParcelable("MOVIE");
 
             viewHolder.overviewView.setText(movie.overview);
-            viewHolder.ratingView.setRating((float) movie.voteAverage);
+            viewHolder.ratingBarView.setRating((float) movie.voteAverage);
+            viewHolder.ratingView.setText(movie.voteAverage+"/10");
             viewHolder.titleView.setText(movie.originalTitle);
-            viewHolder.releaseView.setText(movie.releaseDate);
+            viewHolder.releaseView.setText(movie.releaseDate.substring(0,4));
 
             if (movie.isFavorite(getActivity())) viewHolder.favoriteBtn.setImageResource(R.drawable.star_2);
             else viewHolder.favoriteBtn.setImageResource(R.drawable.star);
@@ -168,6 +175,8 @@ public class DetailFragment extends Fragment  {
         v.refreshDrawableState();
 
     }
+
+
 
     public class FetchMovieTrailersReview extends AsyncTask<String, Void, String> {
         private final String LOG_TAG = "PopularMovies";

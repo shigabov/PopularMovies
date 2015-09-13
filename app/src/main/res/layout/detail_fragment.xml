@@ -5,94 +5,108 @@
     android:layout_height="match_parent"
     tools:context="com.example.popularmovies.DetailFragment">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/textView_title"
-            style="@style/MovieTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:text="MOVIE_NAME" />
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
 
             <ImageView
                 android:id="@+id/imageView_big_poster"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
                 android:layout_alignParentLeft="true"
-                android:scaleType="center"
+                android:scaleType="centerCrop"
                 tools:src="@drawable/test"
 
-                />
-
-
-            <TextView
-                android:id="@+id/textView_releaseDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/imageView_big_poster"
-                tools:text="2015-01-01"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"/>
-
-
-            <RatingBar
-                android:id="@+id/ratingBar"
-                style="@android:style/Widget.Material.Light.RatingBar.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/textView_releaseDate"
-                android:layout_toRightOf="@id/imageView_big_poster"
-                android:isIndicator="true"
-                android:numStars="10"
-                tools:rating="8"
-                android:stepSize="1"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"/>
-
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="false"
+                android:cropToPadding="false" />
 
             <ImageButton
                 android:id="@+id/imageBtn_favorite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/ratingBar"
-                android:layout_toRightOf="@id/imageView_big_poster"
                 android:onClick="onFavoriteClicked"
 
                 tools:src="@drawable/star"
                 android:background="@android:color/transparent"
+                android:layout_alignBottom="@id/imageView_big_poster"
+                android:layout_alignParentRight="true"
+                android:layout_margin="10dp" />
+
+            <TextView
+                android:id="@+id/textView_title"
+                style="@style/MovieTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="MOVIE_NAME"
+                android:layout_below="@+id/imageView_big_poster" />
+
+        <TextView
+            android:id="@+id/textView_releaseDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="2015-01-01"
+            android:layout_marginLeft="10dp"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/textView_title"
+
+            />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/linearLayout_rating"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_below="@+id/textView_releaseDate">
+            <RatingBar
+                android:id="@+id/ratingBar"
+                style="@android:style/Widget.Material.Light.RatingBar.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:isIndicator="true"
+                android:numStars="10"
                 android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"/>
+                tools:rating="8"
+                android:stepSize="1"
+                 />
+            <TextView
+                android:layout_width="wrap_content"
+                android:id="@+id/textView_rating"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:textAppearance="?android:textAppearanceMedium"
+                tools:text="9/10"/>
+        </LinearLayout>
 
-
-        </RelativeLayout>
 
         <TextView
             android:id="@+id/textView_overview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:textAppearanceSmall"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="2dp"
-            tools:text="dfdssdfsdfsdfdsfsdfsd sfdgdhhd dhdfhdfhgh" />
+            tools:text="dfdssdfsdfsdfdsfsdfsd sfdgdhhd dhdfhdfhgh"
+            android:layout_below="@+id/linearLayout_rating"/>
 
 
         <ListView
             android:id="@+id/listView_trailers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"/>
+            android:choiceMode="singleChoice"
+            android:layout_marginTop="10dp"
+            android:layout_below="@+id/textView_overview"/>
 
 
         <ListView
             android:id="@+id/listView_reviews"
             android:layout_width="match_parent"
             android:layout_marginTop="10dp"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/listView_trailers"/>
+    </RelativeLayout>
 </ScrollView>

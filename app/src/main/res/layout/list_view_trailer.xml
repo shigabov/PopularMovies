@@ -11,6 +11,7 @@
     android:drawablePadding="15dp"
     android:onClick="onTrailerClicked"
     android:gravity="center_vertical"
+    android:textAppearance="?android:textAppearanceMedium"
     android:textAllCaps="true"
 
     />
