@@ -1,4 +1,4 @@
 # PopularMovies
 Popular Movies app
 
-You need to change MainFragment.java, set api_key parameter with your api key.
+You need to create string resource name=api_key with your api key.
